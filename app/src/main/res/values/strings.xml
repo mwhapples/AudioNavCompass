@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AudioNav Compass</string>
+    <string name="current_heading">Current Heading</string>
+</resources>
