@@ -19,6 +19,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,20 +33,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.tooling.preview.Preview
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewModel by viewModels<MainViewModel>()
         enableEdgeToEdge()
         setContent {
             AudioNavCompassTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CompassHeading(
+                        viewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CompassHeading(modifier: Modifier = Modifier) {
+fun CompassHeading(viewModel: MainViewModel, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.fillMaxWidth()
@@ -66,7 +67,7 @@ fun CompassHeading(modifier: Modifier = Modifier) {
             modifier = modifier.semantics { heading() }
         )
         Text(
-            text = "---",
+            text = "%03d".format(viewModel.heading.intValue),
             fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE),
             modifier = modifier
         )
