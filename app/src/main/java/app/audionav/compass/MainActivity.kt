@@ -28,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.asIntState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,12 +37,25 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val viewModel by viewModels<MainViewModel>()
+        val orientation = FusedOrientationCompass(application)
+        val viewModel: MainViewModel by viewModels {
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                        @Suppress("UNCHECKED_CAST")
+                        MainViewModel(orientation.orientationEvents) as T
+                    } else {
+                        super.create(modelClass)
+                    }
+                }
+            } }
         enableEdgeToEdge()
         setContent {
             AudioNavCompassTheme {
@@ -66,8 +81,9 @@ fun CompassHeading(viewModel: MainViewModel, modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.headlineMedium,
             modifier = modifier.semantics { heading() }
         )
+        val heading = viewModel.heading.collectAsState(0).asIntState()
         Text(
-            text = "%03d".format(viewModel.heading.intValue),
+            text = "%03d".format(heading.intValue),
             fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE),
             modifier = modifier
         )
