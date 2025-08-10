@@ -19,7 +19,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,28 +36,16 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val orientation = FusedOrientationCompass(application)
-        val viewModel: MainViewModel by viewModels {
-            object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                        @Suppress("UNCHECKED_CAST")
-                        MainViewModel(orientation.orientationEvents) as T
-                    } else {
-                        super.create(modelClass)
-                    }
-                }
-            } }
         enableEdgeToEdge()
         setContent {
             AudioNavCompassTheme {
+                val viewModel = koinViewModel<MainViewModel>()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     CompassHeading(
                         viewModel,
@@ -89,6 +76,7 @@ fun CompassHeading(viewModel: MainViewModel, modifier: Modifier = Modifier) {
         )
     }
 }
+
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
