@@ -16,8 +16,20 @@
 package app.audionav.compass
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 
-class MainViewModel(orientationSensor: FusedOrientationCompass) : ViewModel() {
-    val heading = orientationSensor.orientationEvents.map { it.headingDegrees.toInt() }
+class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
+    private val compassConnection = compassProvider.compassConnection.shareIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapConcat { it.compassEvents }.filterIsInstance<CompassEvent.Heading>().map { it.headingInDegrees.toInt() }
 }

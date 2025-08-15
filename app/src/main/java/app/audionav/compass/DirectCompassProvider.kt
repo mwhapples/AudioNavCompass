@@ -15,13 +15,10 @@
  */
 package app.audionav.compass
 
-import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModelOf
-import org.koin.dsl.module
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-val appModule = module {
-    singleOf(::FusedOrientationCompass) {bind<CompassConnection.ActiveCompassConnection>() }
-    singleOf(::DirectCompassProvider) { bind<CompassProvider>() }
-    viewModelOf(::MainViewModel)
+class DirectCompassProvider(compass: CompassConnection.ActiveCompassConnection) : CompassProvider {
+    override val compassConnection: StateFlow<CompassConnection> = MutableStateFlow(compass).asStateFlow()
 }

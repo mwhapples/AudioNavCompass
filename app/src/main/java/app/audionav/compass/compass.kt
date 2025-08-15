@@ -15,13 +15,19 @@
  */
 package app.audionav.compass
 
-import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.singleOf
-import org.koin.core.module.dsl.viewModelOf
-import org.koin.dsl.module
+import kotlinx.coroutines.flow.Flow
 
-val appModule = module {
-    singleOf(::FusedOrientationCompass) {bind<CompassConnection.ActiveCompassConnection>() }
-    singleOf(::DirectCompassProvider) { bind<CompassProvider>() }
-    viewModelOf(::MainViewModel)
+interface CompassEvent {
+    data class Heading(val headingInDegrees: Float, val headingErrorInDegrees: Float) : CompassEvent
+}
+
+sealed interface CompassConnection {
+    object NoCompassConnection : CompassConnection
+    interface ActiveCompassConnection : CompassConnection {
+        val compassEvents: Flow<CompassEvent>
+    }
+}
+
+interface CompassProvider {
+    val compassConnection: Flow<CompassConnection>
 }

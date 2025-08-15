@@ -22,9 +22,10 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import java.util.concurrent.Executors
 
-class FusedOrientationCompass(context: Context) {
+class FusedOrientationCompass(context: Context) : CompassConnection.ActiveCompassConnection {
     private val client = LocationServices.getFusedOrientationProviderClient(context)
     val orientationEvents: Flow<DeviceOrientation> = callbackFlow {
         val request = DeviceOrientationRequest.Builder(DeviceOrientationRequest.OUTPUT_PERIOD_DEFAULT).build()
@@ -39,4 +40,5 @@ class FusedOrientationCompass(context: Context) {
         client.requestOrientationUpdates(request, executor, listener)
         awaitClose { client.removeOrientationUpdates(listener) }
     }
+    override val compassEvents: Flow<CompassEvent> = orientationEvents.map { CompassEvent.Heading(it.headingDegrees, it.headingErrorDegrees) }
 }
