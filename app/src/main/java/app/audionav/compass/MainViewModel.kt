@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
 class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
-    private val compassConnection = compassProvider.compassConnection.shareIn(
+    val compassConnection = compassProvider.compassConnection.shareIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily
     )

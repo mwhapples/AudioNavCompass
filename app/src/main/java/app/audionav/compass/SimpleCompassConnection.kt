@@ -16,7 +16,16 @@
 package app.audionav.compass
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class SimpleCompassConnection(compassSensor: CompassSensor) : CompassConnection.ActiveCompassConnection {
     override val compassEvents: Flow<CompassEvent> = compassSensor.compassEvents
+    private val _mutableCourse = MutableStateFlow(0)
+    override val course: StateFlow<Int> = _mutableCourse.asStateFlow()
+    override fun updateCourse(newCourse: Int) {
+        val moddedCourse = newCourse % 360
+        _mutableCourse.value = if (moddedCourse < 0) moddedCourse + 360 else moddedCourse
+    }
 }

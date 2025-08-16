@@ -20,9 +20,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,12 +34,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +53,7 @@ class MainActivity : ComponentActivity() {
             AudioNavCompassTheme {
                 val viewModel = koinViewModel<MainViewModel>()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    CompassHeading(
+                    MainCompassScreen(
                         viewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -58,7 +64,31 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CompassHeading(viewModel: MainViewModel, modifier: Modifier = Modifier) {
+fun MainCompassScreen(
+    viewModel: MainViewModel,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        val compass = viewModel.compassConnection.collectAsState(CompassConnection.NoCompassConnection)
+        when(compass.value) {
+            CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge, modifier = modifier)
+            is CompassConnection.ActiveCompassConnection -> {
+                val heading = (compass.value as CompassConnection.ActiveCompassConnection).compassEvents.filterIsInstance<CompassEvent.Heading>().map { (it.headingInDegrees % 360).roundToInt() }.collectAsState(0).asIntState()
+                val course = (compass.value as CompassConnection.ActiveCompassConnection).course.collectAsState().asIntState()
+                CompassHeading(heading.intValue, modifier = modifier)
+                Button(onClick = { (compass.value as CompassConnection.ActiveCompassConnection).updateCourse(heading.intValue) }) {
+                    Text(text = "Set course to heading", modifier = modifier)
+                }
+                CompassCourse(course.intValue, 1, 5, (compass.value as CompassConnection.ActiveCompassConnection)::updateCourse)
+            }
+        }
+    }
+}
+@Composable
+fun CompassHeading(heading: Int, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.fillMaxWidth()
@@ -68,15 +98,48 @@ fun CompassHeading(viewModel: MainViewModel, modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.headlineMedium,
             modifier = modifier.semantics { heading() }
         )
-        val heading = viewModel.heading.collectAsState(0).asIntState()
         Text(
-            text = "%03d".format(heading.intValue),
+            text = "%03d".format(heading),
             fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE),
             modifier = modifier
         )
     }
 }
 
+@Composable
+fun CompassCourse(
+    currentCourse: Int,
+    smallStep: Int,
+    largeStep: Int,
+    updateFunction: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(text = "Course", style = MaterialTheme.typography.headlineMedium, modifier = modifier.semantics { heading() })
+        Row {
+            Button(onClick = { updateFunction(currentCourse - largeStep) }) {
+                Text("<<", modifier = modifier.semantics {
+                    contentDescription = "Large decrement"
+                })
+            }
+            Button(onClick = { updateFunction(currentCourse - smallStep)}) {
+                Text(text = "<", modifier = modifier.semantics {
+                    contentDescription = "Small decrement"
+                })
+            }
+            Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
+            Button(onClick = { updateFunction(currentCourse + smallStep) }) {
+                Text(text = ">", modifier = modifier.semantics { contentDescription = "Small increment" })
+            }
+            Button(onClick = { updateFunction(currentCourse + largeStep) }) {
+                Text(text = ">>", modifier = modifier.semantics { contentDescription = "Large increment" })
+            }
+        }
+    }
+}
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
