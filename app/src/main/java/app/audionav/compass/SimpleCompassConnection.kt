@@ -17,21 +17,6 @@ package app.audionav.compass
 
 import kotlinx.coroutines.flow.Flow
 
-interface CompassEvent {
-    data class Heading(val headingInDegrees: Float, val headingErrorInDegrees: Float) : CompassEvent
-}
-
-interface CompassSensor {
-    val compassEvents: Flow<CompassEvent>
-}
-
-sealed interface CompassConnection {
-    object NoCompassConnection : CompassConnection
-    interface ActiveCompassConnection : CompassConnection {
-        val compassEvents: Flow<CompassEvent>
-    }
-}
-
-interface CompassProvider {
-    val compassConnection: Flow<CompassConnection>
+class SimpleCompassConnection(compassSensor: CompassSensor) : CompassConnection.ActiveCompassConnection {
+    override val compassEvents: Flow<CompassEvent> = compassSensor.compassEvents
 }

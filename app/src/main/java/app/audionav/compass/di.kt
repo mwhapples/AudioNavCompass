@@ -21,7 +21,8 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
-    singleOf(::FusedOrientationCompass) {bind<CompassConnection.ActiveCompassConnection>() }
+    singleOf(::FusedOrientationCompass) {bind<CompassSensor>() }
+    singleOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
     singleOf(::DirectCompassProvider) { bind<CompassProvider>() }
     viewModelOf(::MainViewModel)
 }

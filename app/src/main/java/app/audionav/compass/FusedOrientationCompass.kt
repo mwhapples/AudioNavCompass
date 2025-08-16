@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import java.util.concurrent.Executors
 
-class FusedOrientationCompass(context: Context) : CompassConnection.ActiveCompassConnection {
+class FusedOrientationCompass(context: Context) : CompassSensor {
     private val client = LocationServices.getFusedOrientationProviderClient(context)
     val orientationEvents: Flow<DeviceOrientation> = callbackFlow {
         val request = DeviceOrientationRequest.Builder(DeviceOrientationRequest.OUTPUT_PERIOD_DEFAULT).build()
