@@ -118,6 +118,7 @@ fun CompassCourse(
         modifier = modifier.fillMaxWidth()
     ) {
         Text(text = "Course", style = MaterialTheme.typography.headlineMedium, modifier = modifier.semantics { heading() })
+        Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
         Row {
             Button(onClick = { updateFunction(currentCourse - largeStep) }) {
                 Text(text = "-$largeStep", modifier = modifier.semantics { contentDescription = "Minus $largeStep" })
@@ -125,9 +126,8 @@ fun CompassCourse(
             Button(onClick = { updateFunction(currentCourse - smallStep)}) {
                 Text(text = "-$smallStep", modifier = modifier.semantics { contentDescription = "Minus $smallStep" })
             }
-            Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
             Button(onClick = { updateFunction(currentCourse + smallStep) }) {
-                Text(text = "+$smallStep", modifier = modifier.semantics { contentDescription = "Plust $smallStep" })
+                Text(text = "+$smallStep", modifier = modifier.semantics { contentDescription = "Plus $smallStep" })
             }
             Button(onClick = { updateFunction(currentCourse + largeStep) }) {
                 Text(text = "+$largeStep", modifier = modifier.semantics { contentDescription = "Plus $largeStep" })
