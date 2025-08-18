@@ -38,7 +38,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -138,20 +137,5 @@ fun CompassCourse(
                 Text(text = ">>", modifier = modifier.semantics { contentDescription = "Large increment" })
             }
         }
-    }
-}
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AudioNavCompassTheme {
-        Greeting("Android")
     }
 }
