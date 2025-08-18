@@ -120,21 +120,17 @@ fun CompassCourse(
         Text(text = "Course", style = MaterialTheme.typography.headlineMedium, modifier = modifier.semantics { heading() })
         Row {
             Button(onClick = { updateFunction(currentCourse - largeStep) }) {
-                Text("<<", modifier = modifier.semantics {
-                    contentDescription = "Large decrement"
-                })
+                Text(text = "-$largeStep", modifier = modifier.semantics { contentDescription = "Minus $largeStep" })
             }
             Button(onClick = { updateFunction(currentCourse - smallStep)}) {
-                Text(text = "<", modifier = modifier.semantics {
-                    contentDescription = "Small decrement"
-                })
+                Text(text = "-$smallStep", modifier = modifier.semantics { contentDescription = "Minus $smallStep" })
             }
             Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
             Button(onClick = { updateFunction(currentCourse + smallStep) }) {
-                Text(text = ">", modifier = modifier.semantics { contentDescription = "Small increment" })
+                Text(text = "+$smallStep", modifier = modifier.semantics { contentDescription = "Plust $smallStep" })
             }
             Button(onClick = { updateFunction(currentCourse + largeStep) }) {
-                Text(text = ">>", modifier = modifier.semantics { contentDescription = "Large increment" })
+                Text(text = "+$largeStep", modifier = modifier.semantics { contentDescription = "Plus $largeStep" })
             }
         }
     }
