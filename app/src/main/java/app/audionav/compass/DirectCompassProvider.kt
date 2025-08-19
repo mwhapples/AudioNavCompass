@@ -15,10 +15,9 @@
  */
 package app.audionav.compass
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class DirectCompassProvider(compass: CompassConnection.ActiveCompassConnection) : CompassProvider {
-    override val compassConnection: StateFlow<CompassConnection> = MutableStateFlow(compass).asStateFlow()
+    override val compassConnection: Flow<CompassConnection> = flowOf(compass)
 }
