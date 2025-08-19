@@ -16,13 +16,14 @@
 package app.audionav.compass
 
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
     singleOf(::FusedOrientationCompass) {bind<CompassSensor>() }
-    singleOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
-    singleOf(::DirectCompassProvider) { bind<CompassProvider>() }
+    factoryOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
+    singleOf(::CompassServiceProvider) { bind<CompassProvider>() }
     viewModelOf(::MainViewModel)
 }
