@@ -17,6 +17,9 @@ package app.audionav.compass
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
 
 interface CompassEvent {
     data class Heading(val headingInDegrees: Float, val headingErrorInDegrees: Float) : CompassEvent
@@ -32,6 +35,18 @@ sealed interface CompassConnection {
         val compassEvents: Flow<CompassEvent>
         val course: StateFlow<Int>
         fun updateCourse(newCourse: Int)
+        val deviationFromCourseDegrees: Flow<Float>
+            get() = compassEvents.filterIsInstance<CompassEvent.Heading>().map { it.headingInDegrees }
+                .combine(course) { h, c ->
+                    val deviation = (h - c) % 360
+                    if (deviation > 180) {
+                        deviation - 360
+                    } else if (deviation > -180) {
+                        deviation
+                    } else {
+                        deviation + 360
+                    }
+                }
     }
 }
 
