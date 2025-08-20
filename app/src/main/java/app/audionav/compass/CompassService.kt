@@ -24,22 +24,27 @@ import android.os.Binder
 import android.os.IBinder
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import org.koin.android.ext.android.get
+import org.koin.android.ext.android.inject
 
-class CompassService : Service() {
+class CompassService : Service(), CompassConnection.ActiveCompassConnection {
+    private val compassConnection: CompassConnection.ActiveCompassConnection by inject()
 
     override fun onBind(intent: Intent): IBinder {
         return CompassServiceBinder()
     }
 
-    inner class CompassServiceBinder : Binder() {
-        fun getCompassConnection(): CompassConnection.ActiveCompassConnection =
-            CompassServiceConnection(get())
-    }
+    override val compassEvents: Flow<CompassEvent>
+        get() = compassConnection.compassEvents
+    override val course: StateFlow<Int>
+        get() = compassConnection.course
 
-    inner class CompassServiceConnection(val compassConnection: CompassConnection.ActiveCompassConnection) :
-        CompassConnection.ActiveCompassConnection by compassConnection
+    override fun updateCourse(newCourse: Int) = compassConnection.updateCourse(newCourse)
+
+    inner class CompassServiceBinder : Binder() {
+        fun getCompassConnection(): CompassConnection.ActiveCompassConnection = this@CompassService
+    }
 }
 
 class CompassServiceProvider(val context: Context) : CompassProvider {
