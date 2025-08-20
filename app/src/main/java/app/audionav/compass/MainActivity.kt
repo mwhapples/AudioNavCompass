@@ -39,7 +39,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToInt
@@ -75,7 +74,7 @@ fun MainCompassScreen(
         when(compass.value) {
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge, modifier = modifier)
             is CompassConnection.ActiveCompassConnection -> {
-                val heading = (compass.value as CompassConnection.ActiveCompassConnection).compassEvents.filterIsInstance<CompassEvent.Heading>().map { (it.headingInDegrees % 360).roundToInt() }.collectAsState(0).asIntState()
+                val heading = (compass.value as CompassConnection.ActiveCompassConnection).headingInDegrees.map { (it.roundToInt()) % 360 }.collectAsState(0).asIntState()
                 val course = (compass.value as CompassConnection.ActiveCompassConnection).course.collectAsState().asIntState()
                 CompassHeading(heading.intValue, modifier = modifier)
                 Button(onClick = { (compass.value as CompassConnection.ActiveCompassConnection).updateCourse(heading.intValue) }) {

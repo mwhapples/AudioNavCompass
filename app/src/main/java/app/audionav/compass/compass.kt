@@ -33,10 +33,14 @@ sealed interface CompassConnection {
     object NoCompassConnection : CompassConnection
     interface ActiveCompassConnection : CompassConnection {
         val compassEvents: Flow<CompassEvent>
+        val headingInDegrees: Flow<Float>
+            get() = compassEvents.filterIsInstance<CompassEvent.Heading>()
+                .map { it.headingInDegrees }
+
         val course: StateFlow<Int>
         fun updateCourse(newCourse: Int)
         val deviationFromCourseDegrees: Flow<Float>
-            get() = compassEvents.filterIsInstance<CompassEvent.Heading>().map { it.headingInDegrees }
+            get() = headingInDegrees
                 .combine(course) { h, c ->
                     val deviation = (h - c) % 360
                     if (deviation > 180) {
