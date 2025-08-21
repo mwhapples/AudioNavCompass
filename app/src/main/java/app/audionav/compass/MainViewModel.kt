@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     val compassConnection = compassProvider.compassConnection.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = CompassConnection.NoCompassConnection)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val heading: StateFlow<Float> = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 0f)
+    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }
     @OptIn(ExperimentalCoroutinesApi::class)
     val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }
     fun updateCourse(newCourse: Int) = compassConnection.value.let {

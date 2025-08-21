@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
@@ -74,13 +75,13 @@ fun MainCompassScreen(
         when(compass.value) {
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge, modifier = modifier)
             is CompassConnection.ActiveCompassConnection -> {
-                val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsState(0).asIntState()
-                val course = viewModel.course.collectAsState(0).asIntState()
-                CompassHeading(heading.intValue, modifier = modifier)
-                Button(onClick = { viewModel.updateCourse(heading.intValue) }) {
+                val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
+                val course = viewModel.course.collectAsStateWithLifecycle(0)
+                CompassHeading(heading.value, modifier = modifier)
+                Button(onClick = { viewModel.updateCourse(heading.value) }) {
                     Text(text = "Set course to heading", modifier = modifier)
                 }
-                CompassCourse(course.intValue, 1, 5, viewModel::updateCourse)
+                CompassCourse(course.value, 1, 5, viewModel::updateCourse)
             }
         }
     }
