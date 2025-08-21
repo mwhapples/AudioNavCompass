@@ -74,13 +74,13 @@ fun MainCompassScreen(
         when(compass.value) {
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge, modifier = modifier)
             is CompassConnection.ActiveCompassConnection -> {
-                val heading = (compass.value as CompassConnection.ActiveCompassConnection).headingInDegrees.map { (it.roundToInt()) % 360 }.collectAsState(0).asIntState()
-                val course = (compass.value as CompassConnection.ActiveCompassConnection).course.collectAsState().asIntState()
+                val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsState(0).asIntState()
+                val course = viewModel.course.collectAsState(0).asIntState()
                 CompassHeading(heading.intValue, modifier = modifier)
-                Button(onClick = { (compass.value as CompassConnection.ActiveCompassConnection).updateCourse(heading.intValue) }) {
+                Button(onClick = { viewModel.updateCourse(heading.intValue) }) {
                     Text(text = "Set course to heading", modifier = modifier)
                 }
-                CompassCourse(course.intValue, 1, 5, (compass.value as CompassConnection.ActiveCompassConnection)::updateCourse)
+                CompassCourse(course.intValue, 1, 5, viewModel::updateCourse)
             }
         }
     }
