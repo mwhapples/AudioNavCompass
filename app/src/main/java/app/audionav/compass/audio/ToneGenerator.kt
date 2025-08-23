@@ -17,32 +17,22 @@ package app.audionav.compass.audio
 
 import android.media.AudioAttributes
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioTrack
 import kotlin.math.PI
 import kotlin.math.sin
 
 class ToneGenerator {
-    private fun calculateAmplitude(sample: Int, fullAmplitude: IntRange, rampUpStep: Double, rampDownStep: Double): Double = when {
-        fullAmplitude.isEmpty() -> 1.0
-        sample < fullAmplitude.min() -> rampUpStep * sample
-        sample > fullAmplitude.max() -> 1.0 - (rampDownStep * (sample - fullAmplitude.max()))
-        else -> 1.0
-    }.coerceIn(0.0, 1.0)
-    fun createTone(frequency: Int, duration: Int, rampUpMS: Int = 5, rampDownMS: Int = 5, sampleRate: Int = 44100): ShortArray {
+    fun createTone(frequency: Int, duration: Int, rampUpMS: Int = 0, rampDownMS: Int = 0, sampleRate: Int = 44100): FloatArray {
         val numOfSamples = sampleRate * duration / 1000
-        val rampUpEnd = (rampUpMS * sampleRate / 1000).coerceAtMost(numOfSamples / 2)
-        val rampUpStep = 1.0 / rampUpEnd
-        val rampDownStart = numOfSamples - (rampDownMS * sampleRate / 1000).coerceAtMost(numOfSamples / 2)
-        val rampDownStep = 1.0 / (numOfSamples - rampDownStart)
-        return (0..<numOfSamples).map { (calculateAmplitude(it, rampUpEnd..rampDownStart, rampUpStep, rampDownStep) * 32000 * sin(PI * 2.0 * frequency * it / sampleRate)).toInt()
-            .toShort() }.toShortArray()
+        return (0..<numOfSamples).map { sin(2.0 * PI * it * frequency / sampleRate).toFloat() }.toFloatArray()
     }
-    fun createAudioTrack(buffer: ShortArray, sampleRate: Int, channelMask: Int, sessionId: Int): AudioTrack {
-        val numOfBytes = buffer.size * 2
+    fun createAudioTrack(buffer: FloatArray, sampleRate: Int, channelMask: Int, sessionId: Int = AudioManager.AUDIO_SESSION_ID_GENERATE): AudioTrack {
+        val numOfBytes = buffer.size * 4
         val audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
             .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED).build()
-        val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+        val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
             .setChannelMask(channelMask).setSampleRate(sampleRate).build()
         return AudioTrack(
             audioAttributes,
@@ -51,7 +41,7 @@ class ToneGenerator {
             AudioTrack.MODE_STATIC,
             sessionId
         ).apply {
-            write(buffer, 0, buffer.size)
+            write(buffer, 0, buffer.size, AudioTrack.WRITE_NON_BLOCKING)
         }
     }
 }
