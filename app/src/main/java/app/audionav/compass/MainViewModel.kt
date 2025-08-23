@@ -15,10 +15,8 @@
  */
 package app.audionav.compass
 
-import android.media.AudioFormat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.audionav.compass.audio.ToneGenerator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterIsInstance
@@ -27,14 +25,18 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
 class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
+    private inline fun <reified T : CompassConnection> updateCompass(value: CompassConnection, block: (T) -> Unit) {
+        if (value is T) {
+            block(value)
+        }
+    }
     val compassConnection = compassProvider.compassConnection.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = CompassConnection.NoCompassConnection)
     @OptIn(ExperimentalCoroutinesApi::class)
     val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
     @OptIn(ExperimentalCoroutinesApi::class)
     val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
-    fun updateCourse(newCourse: Int) = compassConnection.value.let {
-        if (it is CompassConnection.ActiveCompassConnection) {
-            it.updateCourse(newCourse)
-        }
-    }
+    fun updateCourse(newCourse: Int) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateCourse(newCourse) }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val audioPlaying = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.audioPlaying }
+    fun updateAudioPlayingState(newState: Boolean) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { if (newState) it.startAudio(viewModelScope) else it.stopAudio() }
 }

@@ -77,6 +77,10 @@ fun MainCompassScreen(
             is CompassConnection.ActiveCompassConnection -> {
                 val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
+                val audioState = viewModel.audioPlaying.collectAsState(false)
+                Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }) {
+                    Text(text = if (audioState.value) "Stop" else "Start")
+                }
                 CompassHeading(heading.value, modifier = modifier)
                 Button(onClick = { viewModel.updateCourse(heading.value) }) {
                     Text(text = "Set course to heading", modifier = modifier)
