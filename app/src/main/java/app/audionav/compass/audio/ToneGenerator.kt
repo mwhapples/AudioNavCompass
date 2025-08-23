@@ -23,11 +23,32 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 class ToneGenerator {
-    fun createTone(frequency: Int, duration: Int, rampUpMS: Int = 0, rampDownMS: Int = 0, sampleRate: Int = 44100): FloatArray {
+    fun createTone(
+        frequency: Int,
+        duration: Int,
+        rampUpMS: Int = 0,
+        rampDownMS: Int = 0,
+        sampleRate: Int = 44100
+    ): FloatArray {
         val numOfSamples = sampleRate * duration / 1000
-        return (0..<numOfSamples).map { sin(2.0 * PI * it * frequency / sampleRate).toFloat() }.toFloatArray()
+        val rampUpSamples = rampUpMS * sampleRate / 1000
+        val rampUpStep = 1.0 / rampUpSamples
+        val rampDownSamples = rampDownMS * sampleRate / 1000
+        val rampDownStep = 1.0 / rampDownSamples
+        val rampDownEnd = numOfSamples + rampDownSamples
+        return (((-rampUpSamples)..<0).map { ((1.0 + (it * rampUpStep)) * sin(2.0 * PI * it * frequency / sampleRate)).toFloat() } + (0..<numOfSamples).map {
+            sin(
+                2.0 * PI * it * frequency / sampleRate
+            ).toFloat()
+        } + (numOfSamples..<rampDownEnd).map { ((1.0 - ((it - numOfSamples + 1) * rampDownStep)) * sin(2.0 * PI * it * frequency / sampleRate)).toFloat() }).toFloatArray()
     }
-    fun createAudioTrack(buffer: FloatArray, sampleRate: Int, channelMask: Int, sessionId: Int = AudioManager.AUDIO_SESSION_ID_GENERATE): AudioTrack {
+
+    fun createAudioTrack(
+        buffer: FloatArray,
+        sampleRate: Int,
+        channelMask: Int,
+        sessionId: Int = AudioManager.AUDIO_SESSION_ID_GENERATE
+    ): AudioTrack {
         val numOfBytes = buffer.size * 4
         val audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
