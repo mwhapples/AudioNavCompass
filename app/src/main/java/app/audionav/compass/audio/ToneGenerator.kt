@@ -40,7 +40,11 @@ class ToneGenerator {
             sin(
                 2.0 * PI * it * frequency / sampleRate
             ).toFloat()
-        } + (numOfSamples..<rampDownEnd).map { ((1.0 - ((it - numOfSamples + 1) * rampDownStep)) * sin(2.0 * PI * it * frequency / sampleRate)).toFloat() }).toFloatArray()
+        } + (numOfSamples..<rampDownEnd).map {
+            ((1.0 - ((it - numOfSamples + 1) * rampDownStep)) * sin(
+                2.0 * PI * it * frequency / sampleRate
+            )).toFloat()
+        }).toFloatArray()
     }
 
     fun createAudioTrack(
@@ -52,7 +56,7 @@ class ToneGenerator {
         val numOfBytes = buffer.size * 4
         val audioAttributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED).build()
+            .build()
         val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
             .setChannelMask(channelMask).setSampleRate(sampleRate).build()
         return AudioTrack(

@@ -15,6 +15,7 @@
  */
 package app.audionav.compass
 
+import app.audionav.compass.audio.AndroidAudioOutput
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -22,6 +23,7 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
+    singleOf(::AndroidAudioOutput)
     singleOf(::FusedOrientationCompass) {bind<CompassSensor>() }
     factoryOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
     singleOf(::CompassServiceProvider) { bind<CompassProvider>() }
