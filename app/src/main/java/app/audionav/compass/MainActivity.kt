@@ -102,7 +102,7 @@ fun MainCompassScreen(
                 Button(onClick = { viewModel.updateCourse(heading.value) }) {
                     Text(text = "Set course to heading", modifier = modifier)
                 }
-                CompassCourse(course.value, 1, 5, viewModel::updateCourse)
+                CompassCourse(course.value, listOf(1, 5, 90), viewModel::updateCourse)
             }
         }
     }
@@ -129,8 +129,7 @@ fun CompassHeading(heading: Int, modifier: Modifier = Modifier) {
 @Composable
 fun CompassCourse(
     currentCourse: Int,
-    smallStep: Int,
-    largeStep: Int,
+    increments: List<Int>,
     updateFunction: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -141,17 +140,15 @@ fun CompassCourse(
         Text(text = "Course", style = MaterialTheme.typography.headlineMedium, modifier = modifier.semantics { heading() })
         Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
         Row {
-            Button(onClick = { updateFunction(currentCourse - largeStep) }) {
-                Text(text = "-$largeStep", modifier = modifier.semantics { contentDescription = "Minus $largeStep" })
+            for (step in increments.reversed()) {
+                Button(onClick = { updateFunction(currentCourse - step)}) {
+                    Text(text = "-$step",  modifier = modifier.semantics { contentDescription = "Minus $step" })
+                }
             }
-            Button(onClick = { updateFunction(currentCourse - smallStep)}) {
-                Text(text = "-$smallStep", modifier = modifier.semantics { contentDescription = "Minus $smallStep" })
-            }
-            Button(onClick = { updateFunction(currentCourse + smallStep) }) {
-                Text(text = "+$smallStep", modifier = modifier.semantics { contentDescription = "Plus $smallStep" })
-            }
-            Button(onClick = { updateFunction(currentCourse + largeStep) }) {
-                Text(text = "+$largeStep", modifier = modifier.semantics { contentDescription = "Plus $largeStep" })
+            for (step in increments) {
+                Button(onClick = { updateFunction(currentCourse + step)}) {
+                    Text(text = "+$step",  modifier = modifier.semantics { contentDescription = "Plus $step" })
+                }
             }
         }
     }
