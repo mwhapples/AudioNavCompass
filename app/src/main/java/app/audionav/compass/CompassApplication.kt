@@ -16,6 +16,9 @@
 package app.audionav.compass
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -23,6 +26,16 @@ import org.koin.core.context.startKoin
 class CompassApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val compassServiceChannel = NotificationChannel(
+                COMPASS_SERVICE_CHANNEL_ID,
+                "Audio Compass Service Channel",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(
+                compassServiceChannel)
+        }
         startKoin {
             androidLogger()
             androidContext(this@CompassApplication)

@@ -19,8 +19,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ServiceInfo
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -30,11 +34,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import org.koin.android.ext.android.inject
 
+const val COMPASS_SERVICE_CHANNEL_ID = "compass_service_channel_id"
+
 class CompassService : LifecycleService(), CompassConnection.ActiveCompassConnection {
     private val compassConnection: CompassConnection.ActiveCompassConnection by inject()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        val notification = NotificationCompat.Builder(this, COMPASS_SERVICE_CHANNEL_ID).setContentTitle("AudioNav Compass Service").setContentText("AudioNav Compass is running").setSmallIcon(R.mipmap.ic_launcher_foreground)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE).build()
+        ServiceCompat.startForeground(this, 1, notification, if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0)
         compassConnection.startAudio(lifecycleScope)
         return START_STICKY
     }
@@ -60,6 +69,7 @@ class CompassService : LifecycleService(), CompassConnection.ActiveCompassConnec
 
     override fun stopAudio() {
         compassConnection.stopAudio()
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
