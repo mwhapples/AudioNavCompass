@@ -16,6 +16,7 @@
 package app.audionav.compass.audio
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioFormat
 import android.media.AudioManager
@@ -62,47 +63,66 @@ class AndroidAudioOutput(private val context: Context) {
         channelMask = CHANNEL_MASK,
         sessionId = audioSessionId
     )
+
     @OptIn(ExperimentalTime::class)
     suspend fun playAudio(deviation: StateFlow<Float>, playingState: MutableStateFlow<Boolean>) {
-        var audioFocusRequest: AudioFocusRequest? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).build()
-            when (audioManager.requestAudioFocus(audioFocusRequest)) {
-                AudioManager.AUDIOFOCUS_REQUEST_FAILED -> return
-            }
+        audioManager.withAudiofocus({ when(it) {
+            AudioManager.AUDIOFOCUS_LOSS -> playingState.value = false
         }
-        playingState.emit(true)
-        val silentAngle = 0
-        var lastLowBeep = Clock.System.now()
-        var lastHighBeep = lastLowBeep
-        try {
-            while (playingState.value) {
-                val currentTime = Clock.System.now()
-                val currentDelta = deviation.value.toInt()
-                val deltaMS =
-                    (if (currentDelta == 0) 0 else abs((5000 + silentAngle) / currentDelta)).toDuration(
-                        DurationUnit.MILLISECONDS
-                    )
-                if (currentDelta < -silentAngle && currentTime - lastLowBeep > deltaMS) {
-                    _lowBeep.stop()
-                    _lowBeep.reloadStaticData()
-                    _lowBeep.play()
-                    lastLowBeep = currentTime
-                } else if (currentDelta > silentAngle && currentTime - lastHighBeep > deltaMS) {
-                    _highBeep.stop()
-                    _highBeep.reloadStaticData()
-                    _highBeep.play()
-                    lastHighBeep = currentTime
+        }) { requestResult ->
+            when(requestResult) {
+                AudioManager.AUDIOFOCUS_REQUEST_FAILED -> return@withAudiofocus
+            }
+            playingState.emit(true)
+            val silentAngle = 0
+            var lastLowBeep = Clock.System.now()
+            var lastHighBeep = lastLowBeep
+            try {
+                while (playingState.value) {
+                    val currentTime = Clock.System.now()
+                    val currentDelta = deviation.value.toInt()
+                    val deltaMS =
+                        (if (currentDelta == 0) 0 else abs((5000 + silentAngle) / currentDelta)).toDuration(
+                            DurationUnit.MILLISECONDS
+                        )
+                    if (currentDelta < -silentAngle && currentTime - lastLowBeep > deltaMS) {
+                        _lowBeep.stop()
+                        _lowBeep.reloadStaticData()
+                        _lowBeep.play()
+                        lastLowBeep = currentTime
+                    } else if (currentDelta > silentAngle && currentTime - lastHighBeep > deltaMS) {
+                        _highBeep.stop()
+                        _highBeep.reloadStaticData()
+                        _highBeep.play()
+                        lastHighBeep = currentTime
+                    }
+                    delay(10)
                 }
-                delay(10)
+            } catch (_: CancellationException) {
+                // Do nothing, just stopping
+            } finally {
+                playingState.emit(false)
             }
-        } catch (_: CancellationException) {
-            // Do nothing, just stopping
-        } finally {
-            playingState.emit(false)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioManager.abandonAudioFocusRequest(audioFocusRequest!!)
-        }
+    }
+}
+
+inline fun AudioManager.withAudiofocus(
+    listener: AudioManager.OnAudioFocusChangeListener,
+    block: (Int) -> Unit
+) {
+    val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
+        AudioAttributes.CONTENT_TYPE_MUSIC
+    ).build()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setOnAudioFocusChangeListener(listener).setAudioAttributes(attributes).build()
+        block(requestAudioFocus(request))
+        abandonAudioFocusRequest(request)
+    } else {
+        @Suppress("DEPRECATION")
+        block(requestAudioFocus(listener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN))
+        @Suppress("DEPRECATION")
+        abandonAudioFocus(listener)
     }
 }
