@@ -18,7 +18,6 @@ package app.audionav.compass
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,7 +42,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
@@ -107,36 +106,47 @@ fun MainCompassScreen(
                 Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }) {
                     Text(text = if (audioState.value) "Stop" else "Start")
                 }
-                CompassHeading(heading.value, modifier = modifier)
+                CompassHeadingDisplay(heading.value, modifier = modifier)
                 Button(onClick = { viewModel.updateCourse(heading.value) }) {
                     Text(text = "Set course to heading", modifier = modifier)
                 }
-                CompassCourse(course.value, listOf(1, 5, 90), viewModel::updateCourse)
+                CompassCourseDisplay(course.value, modifier = modifier)
+                CompassControlsBar(course.value, listOf(1, 5, 90), viewModel::updateCourse)
             }
         }
     }
 }
 @Composable
-fun CompassHeading(heading: Int, modifier: Modifier = Modifier) {
+fun CompassHeadingDisplay(heading: Int, modifier: Modifier = Modifier) {
+    BearingDisplay(label = stringResource(R.string.current_heading), bearing = heading, modifier = modifier)
+}
+
+@Composable
+fun CompassCourseDisplay(course: Int, modifier: Modifier = Modifier) {
+    BearingDisplay(label = "Course", bearing = course, modifier = modifier)
+}
+@Composable
+fun BearingDisplay(label: String, bearing: Int, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = stringResource(R.string.current_heading),
+            text = label,
             style = MaterialTheme.typography.headlineMedium,
             modifier = modifier.semantics { heading() }
         )
         Text(
-            text = "%03d".format(heading),
+            text = "%03d".format(bearing),
             fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE),
+            fontSize = 20.sp,
             modifier = modifier
         )
     }
 }
 
 @Composable
-fun CompassCourse(
+fun CompassControlsBar(
     currentCourse: Int,
     increments: List<Int>,
     updateFunction: (Int) -> Unit,
@@ -146,8 +156,6 @@ fun CompassCourse(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.fillMaxWidth()
     ) {
-        Text(text = "Course", style = MaterialTheme.typography.headlineMedium, modifier = modifier.semantics { heading() })
-        Text(text = "%03d".format(currentCourse),  fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE), modifier = modifier)
         Row {
             for (step in increments.reversed()) {
                 Button(onClick = { updateFunction(currentCourse - step)}) {
