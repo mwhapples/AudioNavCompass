@@ -23,11 +23,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -103,14 +106,24 @@ fun MainCompassScreen(
                 val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
                 val audioState = viewModel.audioPlaying.collectAsState(false)
-                Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }) {
-                    Text(text = if (audioState.value) "Stop" else "Start")
+                Column(
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    modifier = modifier
+                        .verticalScroll(rememberScrollState())
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    CompassHeadingDisplay(heading.value, modifier = modifier)
+                    CompassCourseDisplay(course.value, modifier = modifier)
                 }
-                CompassHeadingDisplay(heading.value, modifier = modifier)
-                Button(onClick = { viewModel.updateCourse(heading.value) }) {
-                    Text(text = "Set course to heading", modifier = modifier)
+                Row {
+                    Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }, modifier = modifier.weight(1f)) {
+                        Text(text = if (audioState.value) "Stop" else "Start")
+                    }
+                    Button(onClick = { viewModel.updateCourse(heading.value) }, modifier = modifier.weight(1f)) {
+                        Text(text = "Set course to heading", modifier = modifier)
+                    }
                 }
-                CompassCourseDisplay(course.value, modifier = modifier)
                 CompassControlsBar(course.value, listOf(1, 5, 90), viewModel::updateCourse)
             }
         }
@@ -123,7 +136,7 @@ fun CompassHeadingDisplay(heading: Int, modifier: Modifier = Modifier) {
 
 @Composable
 fun CompassCourseDisplay(course: Int, modifier: Modifier = Modifier) {
-    BearingDisplay(label = "Course", bearing = course, modifier = modifier)
+    BearingDisplay(label = stringResource(R.string.course), bearing = course, modifier = modifier)
 }
 @Composable
 fun BearingDisplay(label: String, bearing: Int, modifier: Modifier = Modifier) {
@@ -158,12 +171,12 @@ fun CompassControlsBar(
     ) {
         Row {
             for (step in increments.reversed()) {
-                Button(onClick = { updateFunction(currentCourse - step)}) {
+                Button(onClick = { updateFunction(currentCourse - step)}, modifier = modifier.weight(1f)) {
                     Text(text = "-$step",  modifier = modifier.semantics { contentDescription = "Minus $step" })
                 }
             }
             for (step in increments) {
-                Button(onClick = { updateFunction(currentCourse + step)}) {
+                Button(onClick = { updateFunction(currentCourse + step)}, modifier = modifier.weight(1f)) {
                     Text(text = "+$step",  modifier = modifier.semantics { contentDescription = "Plus $step" })
                 }
             }
