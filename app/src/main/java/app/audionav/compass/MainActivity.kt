@@ -101,59 +101,60 @@ fun MainCompassScreen(
     ) {
         val compass = viewModel.compassConnection.collectAsState(CompassConnection.NoCompassConnection)
         when(compass.value) {
-            CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge, modifier = modifier)
+            CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge)
             is CompassConnection.ActiveCompassConnection -> {
                 val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
                 val audioState = viewModel.audioPlaying.collectAsState(false)
-                Column(
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    modifier = modifier
-                        .verticalScroll(rememberScrollState())
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    CompassHeadingDisplay(heading.value, modifier = modifier)
-                    CompassCourseDisplay(course.value, modifier = modifier)
-                }
-                Row {
-                    Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }, modifier = modifier.weight(1f)) {
-                        Text(text = if (audioState.value) "Stop" else "Start")
+                Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        CompassHeadingDisplay(heading.value)
+                        CompassCourseDisplay(course.value)
                     }
-                    Button(onClick = { viewModel.updateCourse(heading.value) }, modifier = modifier.weight(1f)) {
-                        Text(text = "Set course to heading", modifier = modifier)
+                    Row {
+                        Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }, modifier = Modifier.weight(1f)) {
+                            Text(text = if (audioState.value) "Stop" else "Start")
+                        }
+                        Button(onClick = { viewModel.updateCourse(heading.value) }, modifier = Modifier.weight(1f)) {
+                            Text(text = "Set course to heading")
+                        }
                     }
+                    CompassControlsBar(course.value, listOf(1, 5, 90), viewModel::updateCourse)
                 }
-                CompassControlsBar(course.value, listOf(1, 5, 90), viewModel::updateCourse)
             }
         }
     }
 }
 @Composable
 fun CompassHeadingDisplay(heading: Int, modifier: Modifier = Modifier) {
-    BearingDisplay(label = stringResource(R.string.current_heading), bearing = heading, modifier = modifier)
+    BearingDisplay(label = stringResource(R.string.current_heading), bearing = heading)
 }
 
 @Composable
 fun CompassCourseDisplay(course: Int, modifier: Modifier = Modifier) {
-    BearingDisplay(label = stringResource(R.string.course), bearing = course, modifier = modifier)
+    BearingDisplay(label = stringResource(R.string.course), bearing = course)
 }
 @Composable
 fun BearingDisplay(label: String, bearing: Int, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth()
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.headlineMedium,
-            modifier = modifier.semantics { heading() }
+            modifier = Modifier.semantics { heading() }
         )
         Text(
             text = "%03d".format(bearing),
             fontFamily = FontFamily(android.graphics.Typeface.MONOSPACE),
             fontSize = 20.sp,
-            modifier = modifier
         )
     }
 }
@@ -167,17 +168,17 @@ fun CompassControlsBar(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row {
             for (step in increments.reversed()) {
-                Button(onClick = { updateFunction(currentCourse - step)}, modifier = modifier.weight(1f)) {
-                    Text(text = "-$step",  modifier = modifier.semantics { contentDescription = "Minus $step" })
+                Button(onClick = { updateFunction(currentCourse - step)}, modifier = Modifier.weight(1f)) {
+                    Text(text = "-$step",  modifier = Modifier.semantics { contentDescription = "Minus $step" })
                 }
             }
             for (step in increments) {
-                Button(onClick = { updateFunction(currentCourse + step)}, modifier = modifier.weight(1f)) {
-                    Text(text = "+$step",  modifier = modifier.semantics { contentDescription = "Plus $step" })
+                Button(onClick = { updateFunction(currentCourse + step)}, modifier = Modifier.weight(1f)) {
+                    Text(text = "+$step",  modifier = Modifier.semantics { contentDescription = "Plus $step" })
                 }
             }
         }
