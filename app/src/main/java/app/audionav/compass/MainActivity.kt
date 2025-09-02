@@ -104,6 +104,7 @@ fun MainCompassScreen(
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge)
             is CompassConnection.ActiveCompassConnection -> {
                 val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
+                val headingError = viewModel.headingError.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(180).asIntState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
                 val audioState = viewModel.audioPlaying.collectAsState(false)
                 Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -115,7 +116,18 @@ fun MainCompassScreen(
                             .fillMaxWidth()
                             .weight(1f)
                     ) {
-                        CompassHeadingDisplay(heading.value)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CompassHeadingDisplay(heading.value)
+                            Text(
+                                text = "Heading error",
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.semantics {heading() }
+                            )
+                            Text(
+                                text = "${headingError.intValue}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                         CompassCourseDisplay(course.value)
                     }
                     Row {

@@ -21,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
@@ -33,6 +34,8 @@ class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     val compassConnection = compassProvider.compassConnection.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = CompassConnection.NoCompassConnection)
     @OptIn(ExperimentalCoroutinesApi::class)
     val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingErrorInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
     @OptIn(ExperimentalCoroutinesApi::class)
     val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
     fun updateCourse(newCourse: Int) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateCourse(newCourse) }
