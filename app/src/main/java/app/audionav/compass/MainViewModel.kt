@@ -33,11 +33,11 @@ class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     }
     val compassConnection = compassProvider.compassConnection.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = CompassConnection.NoCompassConnection)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
+    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily, replay = 1)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingErrorInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
+    val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingErrorInDegrees }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 180f)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily)
+    val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 0)
     fun updateCourse(newCourse: Int) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateCourse(newCourse) }
     @OptIn(ExperimentalCoroutinesApi::class)
     val audioPlaying = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.audioPlaying }
