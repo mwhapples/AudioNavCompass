@@ -16,14 +16,11 @@
 package app.audionav.compass
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 interface CompassEvent {
     data class Heading(val headingInDegrees: Float, val headingErrorInDegrees: Float) : CompassEvent
