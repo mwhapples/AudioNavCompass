@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.1"
+agp = "8.13.2"
 kotlin = "2.3.20"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.11.00"
 playServicesLocation = "21.3.0"
-koinBom = "4.1.1"
+koinBom = "4.2.0"
 lifecycleService = "2.9.4"
 
 [libraries]
