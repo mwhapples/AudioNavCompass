@@ -117,7 +117,7 @@ fun MainCompassScreen(
                             .weight(1f)
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CompassHeadingDisplay(heading.value)
+                            CompassHeadingDisplay(heading.intValue)
                             Text(
                                 text = "Heading error",
                                 style = MaterialTheme.typography.headlineSmall,
@@ -134,7 +134,7 @@ fun MainCompassScreen(
                         Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }, modifier = Modifier.weight(1f)) {
                             Text(text = if (audioState.value) "Stop" else "Start")
                         }
-                        Button(onClick = { viewModel.updateCourse(heading.value) }, modifier = Modifier.weight(1f)) {
+                        Button(onClick = { viewModel.updateCourse(heading.intValue) }, modifier = Modifier.weight(1f)) {
                             Text(text = "Set course to heading")
                         }
                     }
