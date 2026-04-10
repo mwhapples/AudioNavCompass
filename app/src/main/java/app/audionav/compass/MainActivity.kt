@@ -45,7 +45,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -118,15 +120,7 @@ fun MainCompassScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CompassHeadingDisplay(heading.intValue)
-                            Text(
-                                text = "Heading error",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.semantics {heading() }
-                            )
-                            LinearProgressIndicator(
-                                progress = { headingError.floatValue },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            HeadingErrorDisplay(headingError.floatValue)
                         }
                         CompassCourseDisplay(course.value)
                     }
@@ -149,6 +143,28 @@ fun CompassHeadingDisplay(heading: Int, modifier: Modifier = Modifier) {
     BearingDisplay(label = stringResource(R.string.current_heading), bearing = heading)
 }
 
+@Composable
+fun HeadingErrorDisplay(headingError: Float, modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.semantics { isTraversalGroup = true }
+    ) {
+        Text(
+            text = "Heading error",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.semantics {
+                heading()
+                traversalIndex = 0f
+            }
+        )
+        LinearProgressIndicator(
+            progress = { headingError },
+            modifier = Modifier.fillMaxWidth().semantics {
+                traversalIndex = 1f
+            }
+        )
+    }
+}
 @Composable
 fun CompassCourseDisplay(course: Int, modifier: Modifier = Modifier) {
     BearingDisplay(label = stringResource(R.string.course), bearing = course)
