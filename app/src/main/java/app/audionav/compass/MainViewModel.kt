@@ -35,7 +35,7 @@ class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
     val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily, replay = 1)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingErrorInDegrees }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 180f)
+    val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingError }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 1f)
     @OptIn(ExperimentalCoroutinesApi::class)
     val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 0)
     fun updateCourse(newCourse: Int) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateCourse(newCourse) }

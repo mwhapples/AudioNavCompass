@@ -32,10 +32,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.asFloatState
 import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -104,7 +106,7 @@ fun MainCompassScreen(
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge)
             is CompassConnection.ActiveCompassConnection -> {
                 val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
-                val headingError = viewModel.headingError.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(180).asIntState()
+                val headingError = viewModel.headingError.collectAsStateWithLifecycle(1f).asFloatState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
                 val audioState = viewModel.audioPlaying.collectAsState(false)
                 Column(verticalArrangement = Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -123,9 +125,9 @@ fun MainCompassScreen(
                                 style = MaterialTheme.typography.headlineSmall,
                                 modifier = Modifier.semantics {heading() }
                             )
-                            Text(
-                                text = "${headingError.intValue}",
-                                style = MaterialTheme.typography.bodySmall
+                            LinearProgressIndicator(
+                                progress = { headingError.floatValue },
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                         CompassCourseDisplay(course.value)

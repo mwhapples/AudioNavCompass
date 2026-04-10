@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
 interface CompassEvent {
-    data class Heading(val headingInDegrees: Float, val headingErrorInDegrees: Float) : CompassEvent
+    data class Heading(val headingInDegrees: Float, val headingError: Float) : CompassEvent
 }
 
 interface CompassSensor {

@@ -40,5 +40,5 @@ class FusedOrientationCompass(context: Context) : CompassSensor {
         client.requestOrientationUpdates(request, executor, listener)
         awaitClose { client.removeOrientationUpdates(listener) }
     }
-    override val compassEvents: Flow<CompassEvent> = orientationEvents.map { CompassEvent.Heading(it.headingDegrees, it.headingErrorDegrees) }
+    override val compassEvents: Flow<CompassEvent> = orientationEvents.map { CompassEvent.Heading(it.headingDegrees, it.headingErrorDegrees / 180f) }
 }
