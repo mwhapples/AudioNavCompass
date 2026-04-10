@@ -51,9 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
-import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
-import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -105,7 +103,7 @@ fun MainCompassScreen(
         when(compass.value) {
             CompassConnection.NoCompassConnection -> Text(text = "No compass available", style = MaterialTheme.typography.bodyLarge)
             is CompassConnection.ActiveCompassConnection -> {
-                val heading = viewModel.heading.map { (it.roundToInt()) % 360 }.collectAsStateWithLifecycle(0).asIntState()
+                val heading = viewModel.heading.collectAsStateWithLifecycle(0).asIntState()
                 val headingError = viewModel.headingError.collectAsStateWithLifecycle(1f).asFloatState()
                 val course = viewModel.course.collectAsStateWithLifecycle(0)
                 val audioState = viewModel.audioPlaying.collectAsState(false)

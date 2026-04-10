@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlin.math.roundToInt
 
 class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     private inline fun <reified T : CompassConnection> updateCompass(value: CompassConnection, block: (T) -> Unit) {
@@ -33,7 +34,7 @@ class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     }
     val compassConnection = compassProvider.compassConnection.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = CompassConnection.NoCompassConnection)
     @OptIn(ExperimentalCoroutinesApi::class)
-    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily, replay = 1)
+    val heading = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.headingInDegrees.map { h -> h.roundToInt() % 360 } }.shareIn(scope = viewModelScope, started = SharingStarted.Lazily, replay = 1)
     @OptIn(ExperimentalCoroutinesApi::class)
     val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingError }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 1f)
     @OptIn(ExperimentalCoroutinesApi::class)
