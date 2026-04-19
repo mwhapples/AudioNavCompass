@@ -13,6 +13,9 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "app.audionav.compass"
         minSdk = 23
@@ -52,6 +55,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.play.services.location)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.androidx.compose)
