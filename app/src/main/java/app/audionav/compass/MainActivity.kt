@@ -171,10 +171,10 @@ fun MainCompassScreen(
                     }
                     Row {
                         Button(onClick = { viewModel.updateAudioPlayingState(!audioState.value) }, modifier = Modifier.weight(1f)) {
-                            Text(text = if (audioState.value) "Stop" else "Start")
+                            Text(text = if (audioState.value) stringResource(R.string.stop_audio) else stringResource(R.string.start_audio))
                         }
                         Button(onClick = { viewModel.updateCourse(heading.intValue) }, modifier = Modifier.weight(1f)) {
-                            Text(text = "Set course to heading")
+                            Text(text = stringResource(R.string.set_course_to_heading))
                         }
                     }
                     CompassControlsBar(course.value, listOf(1, 5, 90), viewModel::updateCourse)
@@ -195,7 +195,7 @@ fun HeadingErrorDisplay(headingError: Float, modifier: Modifier = Modifier) {
         modifier = modifier.semantics { isTraversalGroup = true }
     ) {
         Text(
-            text = "Heading error",
+            text = stringResource(R.string.heading_error),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.semantics {
                 heading()
@@ -204,9 +204,11 @@ fun HeadingErrorDisplay(headingError: Float, modifier: Modifier = Modifier) {
         )
         LinearProgressIndicator(
             progress = { headingError },
-            modifier = Modifier.fillMaxWidth().semantics {
-                traversalIndex = 1f
-            }
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    traversalIndex = 1f
+                }
         )
     }
 }

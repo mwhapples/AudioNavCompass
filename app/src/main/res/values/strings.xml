@@ -2,4 +2,8 @@
     <string name="app_name">AudioNav Compass</string>
     <string name="current_heading">Current Heading</string>
     <string name="course">Course</string>
+    <string name="heading_error">Heading error</string>
+    <string name="set_course_to_heading">Set course to heading</string>
+    <string name="start_audio">Start</string>
+    <string name="stop_audio">Stop</string>
 </resources>
