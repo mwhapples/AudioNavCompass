@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -56,10 +54,11 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.play.services.location)
-    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.play.services.location)
+    implementation(project.dependencies.platform(libs.koin.bom))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

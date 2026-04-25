@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Michael Whapples
+ * Copyright (C) 2025-2026 Michael Whapples
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -32,7 +32,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.asFloatState
 import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,12 +62,15 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.audionav.compass.ui.theme.AudioNavCompassTheme
+import app.audionav.compass.ui.theme.Typography
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -72,7 +78,6 @@ class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
         // Even when rejected works but notifications will not be shown.
     }
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -80,42 +85,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             AudioNavCompassTheme {
                 val viewModel = koinViewModel<MainViewModel>()
-                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                val scope = rememberCoroutineScope()
-                ModalNavigationDrawer(
-                    drawerState = drawerState,
-                    drawerContent = {
-                        ModalDrawerSheet {
-                            Text("${stringResource(R.string.app_name)} ${BuildConfig.VERSION_NAME}", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                val settings = CompassSettings(this)
+                val onboardingVersion: Int by settings.onboardingVersionFlow().collectAsState(initial = 0)
+                if (onboardingVersion < BuildConfig.VERSION_CODE) {
+                    val coroutineScope = rememberCoroutineScope()
+                    OnboardingScreen(onComplete = {
+                        coroutineScope.launch {
+                            settings.updateOnboardingVersion(BuildConfig.VERSION_CODE)
                         }
-                    }
-                ) {
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize(),
-                        topBar = {
-                            TopAppBar(
-                                title = {
-                                    Text(stringResource(R.string.app_name))
-                                },
-                                navigationIcon = {
-                                    IconButton(
-                                        onClick = {
-                                            scope.launch {
-                                                if (drawerState.isOpen) drawerState.close() else drawerState.open()
-                                            }
-                                        }
-                                    ) {
-                                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                                    }
-                                }
-                            )
-                        }
-                    ) { innerPadding ->
-                        MainCompassScreen(
-                            viewModel,
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                    }
+                    })
+                } else {
+                    AppScreen(viewModel)
                 }
             }
         }
@@ -134,6 +114,79 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         super.onDestroy()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OnboardingScreen(onComplete: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "${stringResource(R.string.app_name)} - Getting started")
+                }
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                actions = {
+                    IconButton(onClick = onComplete) {
+                        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = "Next")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
+            Text(text = "Welcome to ${stringResource(R.string.app_name)}", style = Typography.titleLarge, modifier = Modifier.semantics { heading() })
+            Text(text = "Whilst we hope you will find ${stringResource(R.string.app_name)} useful, due to the wide variety of devices available it is not possible to confirm how well the app will work on any specific device. In using the app you take responsibility for testing the app works to your satisfaction on your own devices.")
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppScreen(viewModel: MainViewModel) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Text(
+                    "${stringResource(R.string.app_name)} ${BuildConfig.VERSION_NAME}",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(stringResource(R.string.app_name))
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    if (drawerState.isOpen) drawerState.close() else drawerState.open()
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+            MainCompassScreen(
+                viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
     }
 }
 
