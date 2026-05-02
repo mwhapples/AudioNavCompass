@@ -32,12 +32,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.NavigateNext
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -128,11 +129,12 @@ private fun OnboardingScreen(onComplete: () -> Unit) {
         },
         bottomBar = {
             BottomAppBar(
-                actions = {
-                    IconButton(onClick = onComplete) {
-                        Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = "Next")
+                floatingActionButton = {
+                    FloatingActionButton(onClick = onComplete) {
+                        Icon(Icons.Default.Done, contentDescription = "Done")
                     }
-                }
+                },
+                actions = {}
             )
         }
     ) { innerPadding ->
