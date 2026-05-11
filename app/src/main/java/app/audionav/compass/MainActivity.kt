@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                 val settings = CompassSettings(this)
                 val onboardingVersion: Int by settings.onboardingVersionFlow()
                     .collectAsState(initial = 0)
-                if (onboardingVersion < BuildConfig.VERSION_CODE) {
+                if (onboardingVersion < 1) {
                     val coroutineScope = rememberCoroutineScope()
                     OnboardingScreen(onComplete = {
                         coroutineScope.launch {
