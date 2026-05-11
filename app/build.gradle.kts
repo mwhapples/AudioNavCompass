@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.play.services.location)
     implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.androidx.compose.adaptive)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

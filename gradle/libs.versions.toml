@@ -13,6 +13,7 @@ playServicesLocation = "21.3.0"
 koinBom = "4.2.1"
 lifecycleService = "2.10.0"
 materialIconsExtended = "1.7.8"
+adaptive = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,7 @@ play-services-location = { module = "com.google.android.gms:play-services-locati
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycleService" }
+androidx-compose-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
