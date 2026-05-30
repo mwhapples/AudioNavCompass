@@ -13,3 +13,7 @@ For those who want to get the APK directly and install manually, please find the
 Use the below details to verify your download:
 - Package ID: app.audionav.compass
 - SHA-256 hash of signing certificate: 6c:cf:2e:ac:20:c2:c9:f8:ff:ec:2d:42:7e:ac:f8:77:be:73:89:eb:8f:9a:26:df:9e:af:32:df:7b:53:49:b2
+
+## Usage
+
+Please find usage information on the [wiki](https://github.com/mwhapples/AudioNavCompass/wiki/Usage).
