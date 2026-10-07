@@ -6,8 +6,8 @@ plugins {
 android {
     namespace = "app.audionav.compass"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(37) {
+            minorApiLevel = 2
         }
     }
 
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId = "app.audionav.compass"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 2
         versionName = "2026.0.1"
 
