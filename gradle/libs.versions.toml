@@ -13,7 +13,7 @@ koinBom = "4.2.2"
 lifecycleService = "2.11.0"
 materialIconsExtended = "1.7.8"
 adaptive = "1.3.0"
-media3 = "1.5.1"
+media3 = "1.11.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

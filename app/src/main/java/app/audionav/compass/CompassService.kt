@@ -62,7 +62,6 @@ class CompassServiceProvider(
     private val context: Context,
     private val activeCompassConnection: CompassConnection.ActiveCompassConnection
 ) : CompassProvider {
-    @OptIn(ExperimentalCoroutinesApi::class)
     override val compassConnection: Flow<CompassConnection> = callbackFlow {
         val sessionToken =
             SessionToken(context, ComponentName(context, CompassService::class.java))

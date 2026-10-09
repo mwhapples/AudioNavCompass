@@ -22,17 +22,9 @@ import androidx.media3.common.util.UnstableApi
 import app.audionav.compass.CompassConnection
 import app.audionav.compass.CompassEvent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import kotlinx.coroutines.flow.*
+import org.junit.Assert.*
 import org.junit.Test
-import org.junit.runner.RunWith
-import java.util.concurrent.Executors
 
 @androidx.annotation.OptIn(UnstableApi::class)
 class CompassPlayerTest {

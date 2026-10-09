@@ -40,7 +40,7 @@ class CompassPlayer(
 
     private val playerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var isPlayingCompass: Boolean = false
-    private var playbackState: Int = Player.STATE_IDLE
+    private var playbackState: Int = STATE_IDLE
 
     private val mediaItem = MediaItem.Builder()
         .setMediaId("audio_nav_compass")
@@ -64,7 +64,7 @@ class CompassPlayer(
             .onEach { playing ->
                 if (isPlayingCompass != playing) {
                     isPlayingCompass = playing
-                    if (!playing && playbackState == Player.STATE_READY) {
+                    if (!playing && playbackState == STATE_READY) {
                         // Stopped from connection/audio focus
                     }
                     invalidateState()
@@ -75,30 +75,30 @@ class CompassPlayer(
 
     override fun getState(): State {
         val playWhenReady = isPlayingCompass
-        val state = if (playWhenReady) Player.STATE_READY else playbackState
+        val state = if (playWhenReady) STATE_READY else playbackState
         return State.Builder()
             .setAvailableCommands(
                 Player.Commands.Builder()
                     .addAll(
-                        Player.COMMAND_PLAY_PAUSE,
-                        Player.COMMAND_PREPARE,
-                        Player.COMMAND_STOP,
-                        Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
-                        Player.COMMAND_GET_TIMELINE,
-                        Player.COMMAND_GET_METADATA
+                        COMMAND_PLAY_PAUSE,
+                        COMMAND_PREPARE,
+                        COMMAND_STOP,
+                        COMMAND_GET_CURRENT_MEDIA_ITEM,
+                        COMMAND_GET_TIMELINE,
+                        COMMAND_GET_METADATA
                     )
                     .build()
             )
             .setPlaylist(listOf(mediaItemData))
             .setCurrentMediaItemIndex(0)
-            .setPlayWhenReady(playWhenReady, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+            .setPlayWhenReady(playWhenReady, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setPlaybackState(state)
             .build()
     }
 
     override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
         if (playWhenReady) {
-            playbackState = Player.STATE_READY
+            playbackState = STATE_READY
             isPlayingCompass = true
             compassConnection.startAudio(playerScope)
         } else {
@@ -110,13 +110,13 @@ class CompassPlayer(
     }
 
     override fun handlePrepare(): ListenableFuture<*> {
-        playbackState = Player.STATE_READY
+        playbackState = STATE_READY
         invalidateState()
         return Futures.immediateVoidFuture()
     }
 
     override fun handleStop(): ListenableFuture<*> {
-        playbackState = Player.STATE_IDLE
+        playbackState = STATE_IDLE
         isPlayingCompass = false
         compassConnection.stopAudio()
         invalidateState()
