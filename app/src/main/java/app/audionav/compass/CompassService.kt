@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Michael Whapples
+ * Copyright (C) 2025-2026 Michael Whapples
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -17,78 +17,98 @@ package app.audionav.compass
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
-import android.content.pm.ServiceInfo
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
-import androidx.core.app.NotificationCompat
-import androidx.core.app.ServiceCompat
-import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.lifecycleScope
+import androidx.core.content.ContextCompat
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionToken
+import app.audionav.compass.audio.CompassPlayer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import org.koin.android.ext.android.inject
 
-const val COMPASS_SERVICE_CHANNEL_ID = "compass_service_channel_id"
-
-class CompassService : LifecycleService(), CompassConnection.ActiveCompassConnection {
+@androidx.annotation.OptIn(UnstableApi::class)
+class CompassService : MediaSessionService() {
     private val compassConnection: CompassConnection.ActiveCompassConnection by inject()
+    private var mediaSession: MediaSession? = null
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
-        val notification = NotificationCompat.Builder(this, COMPASS_SERVICE_CHANNEL_ID).setContentTitle("AudioNav Compass Service").setContentText("AudioNav Compass is running").setSmallIcon(R.mipmap.ic_launcher_foreground)
-            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE).build()
-        ServiceCompat.startForeground(this, 1, notification, if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0)
-        compassConnection.startAudio(lifecycleScope)
-        return START_STICKY
-    }
-    override fun onBind(intent: Intent): IBinder {
-        super.onBind(intent)
-        return CompassServiceBinder()
+    override fun onCreate() {
+        super.onCreate()
+        val player = CompassPlayer(compassConnection)
+        mediaSession = MediaSession.Builder(this, player).build()
     }
 
-    override val compassEvents: Flow<CompassEvent>
-        get() = compassConnection.compassEvents
-    override val course: StateFlow<Int>
-        get() = compassConnection.course
-
-    override fun updateCourse(newCourse: Int) = compassConnection.updateCourse(newCourse)
-
-    override val audioPlaying: Flow<Boolean>
-        get() = compassConnection.audioPlaying
-
-    override fun startAudio(scope: CoroutineScope) {
-        val intent = Intent(this, this::class.java)
-        startService(intent)
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return mediaSession
     }
 
-    override fun stopAudio() {
-        compassConnection.stopAudio()
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        stopSelf()
-    }
-
-    inner class CompassServiceBinder : Binder() {
-        fun getCompassConnection(): CompassConnection.ActiveCompassConnection = this@CompassService
+    override fun onDestroy() {
+        mediaSession?.run {
+            player.release()
+            release()
+            mediaSession = null
+        }
+        super.onDestroy()
     }
 }
 
-class CompassServiceProvider(val context: Context) : CompassProvider {
+class CompassServiceProvider(
+    private val context: Context,
+    private val activeCompassConnection: CompassConnection.ActiveCompassConnection
+) : CompassProvider {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val compassConnection: Flow<CompassConnection> = callbackFlow {
-        val conn = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-                trySend((binder as CompassService.CompassServiceBinder).getCompassConnection())
-            }
+        val sessionToken =
+            SessionToken(context, ComponentName(context, CompassService::class.java))
+        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
 
-            override fun onServiceDisconnected(p0: ComponentName?) {}
+        controllerFuture.addListener({
+            try {
+                val controller = controllerFuture.get()
+                val mediaControllerConnection = object : CompassConnection.ActiveCompassConnection {
+                    override val compassEvents: Flow<CompassEvent>
+                        get() = activeCompassConnection.compassEvents
+                    override val course: StateFlow<Int>
+                        get() = activeCompassConnection.course
+                    override fun updateCourse(newCourse: Int) =
+                        activeCompassConnection.updateCourse(newCourse)
+
+                    override val audioPlaying: Flow<Boolean> = callbackFlow {
+                        val listener = object : Player.Listener {
+                            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                trySend(isPlaying)
+                            }
+                        }
+                        trySend(controller.isPlaying)
+                        controller.addListener(listener)
+                        awaitClose { controller.removeListener(listener) }
+                    }
+
+                    override fun startAudio(scope: CoroutineScope) {
+                        if (controller.playbackState == Player.STATE_IDLE) {
+                            controller.prepare()
+                        }
+                        controller.play()
+                    }
+
+                    override fun stopAudio() {
+                        controller.pause()
+                    }
+                }
+                trySend(mediaControllerConnection)
+            } catch (_: Exception) {
+                trySend(CompassConnection.NoCompassConnection)
+            }
+        }, ContextCompat.getMainExecutor(context))
+
+        awaitClose {
+            MediaController.releaseFuture(controllerFuture)
         }
-        val intent = Intent(context, CompassService::class.java)
-        context.bindService(intent, conn, Context.BIND_AUTO_CREATE)
-        awaitClose { context.unbindService(conn) }
     }
 }

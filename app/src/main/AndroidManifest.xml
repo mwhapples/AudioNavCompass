@@ -19,7 +19,11 @@
             android:name=".CompassService"
             android:foregroundServiceType="mediaPlayback"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".MainActivity"

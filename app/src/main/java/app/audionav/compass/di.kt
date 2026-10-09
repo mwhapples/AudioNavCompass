@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Michael Whapples
+ * Copyright (C) 2025-2026 Michael Whapples
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -17,15 +17,14 @@ package app.audionav.compass
 
 import app.audionav.compass.audio.AndroidAudioOutput
 import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val appModule = module {
     singleOf(::AndroidAudioOutput)
-    singleOf(::RotationVectorCompass) {bind<CompassSensor>() }
-    factoryOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
+    singleOf(::RotationVectorCompass) { bind<CompassSensor>() }
+    singleOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
     singleOf(::CompassServiceProvider) { bind<CompassProvider>() }
     viewModelOf(::MainViewModel)
 }

@@ -41,6 +41,9 @@ android {
         compose = true
         resValues = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -59,6 +62,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.service)
     implementation(platform(libs.koin.bom))
     implementation(libs.androidx.compose.adaptive)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
