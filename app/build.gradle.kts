@@ -7,7 +7,7 @@ android {
     namespace = "app.audionav.compass"
     compileSdk {
         version = release(37) {
-            minorApiLevel = 2
+            minorApiLevel = 0
         }
     }
 
@@ -57,7 +57,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.lifecycle.service)
-    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(platform(libs.koin.bom))
     implementation(libs.androidx.compose.adaptive)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

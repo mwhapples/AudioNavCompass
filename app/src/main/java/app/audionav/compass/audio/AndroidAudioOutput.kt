@@ -64,7 +64,6 @@ class AndroidAudioOutput(private val context: Context) {
         sessionId = audioSessionId
     )
 
-    @OptIn(ExperimentalTime::class)
     suspend fun playAudio(deviation: StateFlow<Float>, playingState: MutableStateFlow<Boolean>) {
         audioManager.withAudiofocus({ when(it) {
             AudioManager.AUDIOFOCUS_LOSS -> playingState.value = false

@@ -42,7 +42,7 @@ class SimpleCompassConnection(compassSensor: CompassSensor, val audioOutput: And
     private val _mutablePlayingState = MutableStateFlow(false)
     override val audioPlaying: StateFlow<Boolean> = _mutablePlayingState.asStateFlow()
 
-    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class, ExperimentalTime::class)
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     override fun startAudio(scope: CoroutineScope) {
         val audioDispatcher = newSingleThreadContext("AudioDispatcher")
         scope.launch(audioDispatcher) {
