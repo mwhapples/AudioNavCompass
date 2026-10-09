@@ -23,6 +23,7 @@ import android.hardware.SensorManager
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import java.lang.Math.toDegrees
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.sqrt
@@ -32,7 +33,7 @@ internal fun headingDegrees(rotationVector: FloatArray): Float {
     val orientation = FloatArray(3)
     SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector)
     SensorManager.getOrientation(rotationMatrix, orientation)
-    return ((Math.toDegrees(orientation[0].toDouble()).toFloat() % 360f) + 360f) % 360f
+    return ((toDegrees(orientation[0].toDouble()).toFloat() % 360f) + 360f) % 360f
 }
 
 internal fun headingError(accuracy: Int, magneticFieldMagnitude: Float): Float {

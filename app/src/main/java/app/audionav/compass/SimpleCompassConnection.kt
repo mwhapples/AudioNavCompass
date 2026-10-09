@@ -16,18 +16,8 @@
 package app.audionav.compass
 
 import app.audionav.compass.audio.AndroidAudioOutput
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 class SimpleCompassConnection(compassSensor: CompassSensor, val audioOutput: AndroidAudioOutput) :
     CompassConnection.ActiveCompassConnection {

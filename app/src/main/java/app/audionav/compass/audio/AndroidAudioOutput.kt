@@ -27,8 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.abs
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 
 private const val SAMPLE_RATE = 44100
@@ -95,7 +95,7 @@ class AndroidAudioOutput(private val context: Context) {
                         _highBeep.play()
                         lastHighBeep = currentTime
                     }
-                    delay(10)
+                    delay(10.milliseconds)
                 }
             } catch (_: CancellationException) {
                 // Do nothing, just stopping
