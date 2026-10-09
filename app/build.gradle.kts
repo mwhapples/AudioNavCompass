@@ -57,7 +57,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.lifecycle.service)
-    implementation(libs.play.services.location)
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.androidx.compose.adaptive)
     testImplementation(libs.junit)

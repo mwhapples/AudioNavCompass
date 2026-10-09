@@ -24,7 +24,7 @@ import org.koin.dsl.module
 
 val appModule = module {
     singleOf(::AndroidAudioOutput)
-    singleOf(::FusedOrientationCompass) {bind<CompassSensor>() }
+    singleOf(::RotationVectorCompass) {bind<CompassSensor>() }
     factoryOf(::SimpleCompassConnection) { bind<CompassConnection.ActiveCompassConnection>() }
     singleOf(::CompassServiceProvider) { bind<CompassProvider>() }
     viewModelOf(::MainViewModel)
