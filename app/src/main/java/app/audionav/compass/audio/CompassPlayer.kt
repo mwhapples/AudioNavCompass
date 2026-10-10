@@ -29,8 +29,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlin.math.roundToInt
 
 @androidx.annotation.OptIn(UnstableApi::class)
 class CompassPlayer(
@@ -40,6 +43,11 @@ class CompassPlayer(
 ) : SimpleBasePlayer(looper) {
 
     private val playerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val heading = compassConnection.headingInDegrees.stateIn(
+        scope = playerScope,
+        started = SharingStarted.Eagerly,
+        initialValue = 0f
+    )
     private var isPlayingCompass: Boolean = false
     private var playbackState: Int = STATE_IDLE
 
@@ -82,6 +90,8 @@ class CompassPlayer(
                 Player.Commands.Builder()
                     .addAll(
                         COMMAND_PLAY_PAUSE,
+                        COMMAND_SEEK_TO_PREVIOUS,
+                        COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
                         COMMAND_SEEK_TO_NEXT,
                         COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
                         COMMAND_PREPARE,
@@ -104,10 +114,11 @@ class CompassPlayer(
         positionMs: Long,
         seekCommand: Int
     ): ListenableFuture<*> {
-        if (seekCommand == COMMAND_SEEK_TO_NEXT ||
-            seekCommand == COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
-        ) {
-            onSeekToNext()
+        when (seekCommand) {
+            COMMAND_SEEK_TO_PREVIOUS, COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM -> {
+                compassConnection.updateCourse(heading.value.roundToInt())
+            }
+            COMMAND_SEEK_TO_NEXT, COMMAND_SEEK_TO_NEXT_MEDIA_ITEM -> onSeekToNext()
         }
         return Futures.immediateVoidFuture()
     }

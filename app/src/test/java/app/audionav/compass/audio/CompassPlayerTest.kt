@@ -23,6 +23,8 @@ import app.audionav.compass.CompassConnection
 import app.audionav.compass.CompassEvent
 import app.audionav.compass.VoiceCommandStatus
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -32,6 +34,11 @@ class CompassPlayerTest {
 
     private class FakeCompassConnection : CompassConnection.ActiveCompassConnection {
         override val compassEvents: Flow<CompassEvent> = emptyFlow()
+        private val _heading = MutableStateFlow(0f)
+        override val headingInDegrees: Flow<Float> = _heading.asStateFlow()
+        fun setHeading(heading: Float) {
+            _heading.value = heading
+        }
         private val _course = MutableStateFlow(0)
         override val course: StateFlow<Int> = _course.asStateFlow()
         override val voiceCommandStatus: StateFlow<VoiceCommandStatus> = MutableStateFlow(VoiceCommandStatus.Idle)
@@ -62,7 +69,7 @@ class CompassPlayerTest {
     fun mediaItemDataIsDynamicAndUnsetDuration() {
         val fakeConnection = FakeCompassConnection()
         val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return
-        val player = CompassPlayer(fakeConnection, looper)
+        val player = CompassPlayer(fakeConnection, onSeekToNext = {}, looper = looper)
 
         assertEquals(C.TIME_UNSET, player.duration)
         assertTrue(player.isCurrentMediaItemDynamic)
@@ -71,10 +78,43 @@ class CompassPlayerTest {
     }
 
     @Test
+    fun previousSeekCommandsSetCourseToCurrentHeading() = runBlocking {
+        val fakeConnection = FakeCompassConnection()
+        val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return@runBlocking
+        var nextSeekCalled = false
+        val player = CompassPlayer(fakeConnection, onSeekToNext = { nextSeekCalled = true }, looper = looper)
+
+        assertTrue(player.isCommandAvailable(Player.COMMAND_SEEK_TO_PREVIOUS))
+        assertTrue(player.isCommandAvailable(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM))
+
+        fakeConnection.setHeading(123.6f)
+        player.seekToPrevious()
+        withTimeout(1_000) { fakeConnection.course.first { it == 124 } }
+
+        fakeConnection.setHeading(271.2f)
+        player.seekToPreviousMediaItem()
+        withTimeout(1_000) { fakeConnection.course.first { it == 271 } }
+        assertFalse(nextSeekCalled)
+    }
+
+    @Test
+    fun nextSeekCommandsStillTriggerCallback() {
+        val fakeConnection = FakeCompassConnection()
+        val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return
+        var nextSeekCalled = 0
+        val player = CompassPlayer(fakeConnection, onSeekToNext = { nextSeekCalled++ }, looper = looper)
+
+        player.seekToNext()
+        player.seekToNextMediaItem()
+
+        assertEquals(2, nextSeekCalled)
+    }
+
+    @Test
     fun handleSetPlayWhenReadyStartsAndStopsAudio() {
         val fakeConnection = FakeCompassConnection()
         val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return
-        val player = CompassPlayer(fakeConnection, looper)
+        val player = CompassPlayer(fakeConnection, onSeekToNext = {}, looper = looper)
 
         player.playWhenReady = true
         assertTrue(fakeConnection.startAudioCalled)
@@ -89,7 +129,7 @@ class CompassPlayerTest {
     fun playAndPauseMethodsControlAudio() {
         val fakeConnection = FakeCompassConnection()
         val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return
-        val player = CompassPlayer(fakeConnection, looper)
+        val player = CompassPlayer(fakeConnection, onSeekToNext = {}, looper = looper)
 
         player.play()
         assertTrue(fakeConnection.startAudioCalled)
@@ -104,7 +144,7 @@ class CompassPlayerTest {
     fun stopMethodStopsAudioAndResetsState() {
         val fakeConnection = FakeCompassConnection()
         val looper = Looper.getMainLooper() ?: Looper.myLooper() ?: return
-        val player = CompassPlayer(fakeConnection, looper)
+        val player = CompassPlayer(fakeConnection, onSeekToNext = {}, looper = looper)
 
         player.play()
         assertTrue(fakeConnection.startAudioCalled)
