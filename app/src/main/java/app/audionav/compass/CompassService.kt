@@ -25,6 +25,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import app.audionav.compass.audio.CompassPlayer
+import com.google.common.util.concurrent.Futures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -41,7 +42,18 @@ class CompassService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         val player = CompassPlayer(compassConnection)
-        mediaSession = MediaSession.Builder(this, player).build()
+        val callback = object : MediaSession.Callback {
+            override fun onConnectAsync(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo
+            ) = Futures.immediateFuture(
+                MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
+                    .setAvailableSessionCommands(MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS)
+                    .setAvailablePlayerCommands(MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS)
+                    .build()
+            )
+        }
+        mediaSession = MediaSession.Builder(this, player).setCallback(callback).build()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
