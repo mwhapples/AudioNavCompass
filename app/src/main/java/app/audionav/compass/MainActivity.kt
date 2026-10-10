@@ -15,14 +15,17 @@
  */
 package app.audionav.compass
 
+import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
@@ -59,11 +63,13 @@ import androidx.compose.runtime.asFloatState
 import androidx.compose.runtime.asIntState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -168,6 +174,25 @@ private fun OnboardingScreen(onComplete: () -> Unit) {
 private fun AppScreen(viewModel: MainViewModel, windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val voiceStatus by viewModel.voiceCommandStatus.collectAsStateWithLifecycle()
+    LaunchedEffect(voiceStatus) {
+        val message = when (val status = voiceStatus) {
+            VoiceCommandStatus.Idle, VoiceCommandStatus.Listening -> null
+            is VoiceCommandStatus.CourseChanged -> context.getString(R.string.voice_course_changed, status.delta)
+            is VoiceCommandStatus.CommandNotRecognized -> context.getString(R.string.voice_command_not_recognized, status.command)
+            VoiceCommandStatus.Error -> context.getString(R.string.voice_recognition_error)
+            VoiceCommandStatus.Unavailable -> context.getString(R.string.voice_recognition_unavailable)
+            VoiceCommandStatus.PermissionDenied -> context.getString(R.string.microphone_permission_denied)
+        }
+        message?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+    }
+    val microphonePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) viewModel.requestVoiceCommand()
+        else viewModel.updateVoiceCommandStatus(VoiceCommandStatus.PermissionDenied)
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -196,6 +221,22 @@ private fun AppScreen(viewModel: MainViewModel, windowSizeClass: WindowSizeClass
                             }
                         ) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            enabled = voiceStatus != VoiceCommandStatus.Listening,
+                            onClick = {
+                                when (ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.RECORD_AUDIO
+                                )) {
+                                    PackageManager.PERMISSION_GRANTED -> viewModel.requestVoiceCommand()
+                                    else -> microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.Mic, contentDescription = stringResource(R.string.listen_for_course_command))
                         }
                     }
                 )

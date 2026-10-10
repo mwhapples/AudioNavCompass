@@ -17,13 +17,25 @@ package app.audionav.compass
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.asStateFlow
 
 interface CompassEvent {
     data class Heading(val headingInDegrees: Float, val headingError: Float) : CompassEvent
+}
+
+sealed interface VoiceCommandStatus {
+    data object Idle : VoiceCommandStatus
+    data object Listening : VoiceCommandStatus
+    data class CourseChanged(val delta: Int) : VoiceCommandStatus
+    data class CommandNotRecognized(val command: String) : VoiceCommandStatus
+    data object Error : VoiceCommandStatus
+    data object Unavailable : VoiceCommandStatus
+    data object PermissionDenied : VoiceCommandStatus
 }
 
 interface CompassSensor {
@@ -39,6 +51,9 @@ sealed interface CompassConnection {
                 .map { it.headingInDegrees }
 
         val course: StateFlow<Int>
+        val voiceCommandStatus: StateFlow<VoiceCommandStatus>
+        fun requestVoiceCommand()
+        fun updateVoiceCommandStatus(status: VoiceCommandStatus)
         fun updateCourse(newCourse: Int)
         val deviationFromCourseDegrees: Flow<Float>
             get() = headingInDegrees

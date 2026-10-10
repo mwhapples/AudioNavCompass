@@ -17,12 +17,16 @@ package app.audionav.compass
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionCommands
 import androidx.media3.session.SessionToken
 import app.audionav.compass.audio.CompassPlayer
 import com.google.common.util.concurrent.Futures
@@ -34,13 +38,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import org.koin.android.ext.android.inject
 
+private const val COMMAND_START_VOICE_RECOGNITION = "app.audionav.compass.START_VOICE_RECOGNITION"
+private val startVoiceRecognitionCommand = SessionCommand(COMMAND_START_VOICE_RECOGNITION, Bundle.EMPTY)
+
 @androidx.annotation.OptIn(UnstableApi::class)
 class CompassService : MediaSessionService() {
     private val compassConnection: CompassConnection.ActiveCompassConnection by inject()
     private var mediaSession: MediaSession? = null
+    private var voiceCommandController: VoiceCommandController? = null
 
     override fun onCreate() {
         super.onCreate()
+        voiceCommandController = VoiceCommandController(this, compassConnection) {
+            compassConnection.updateVoiceCommandStatus(it)
+        }
         val player = CompassPlayer(compassConnection)
         val callback = object : MediaSession.Callback {
             override fun onConnectAsync(
@@ -48,9 +59,27 @@ class CompassService : MediaSessionService() {
                 controller: MediaSession.ControllerInfo
             ) = Futures.immediateFuture(
                 MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
-                    .setAvailableSessionCommands(MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS)
+                    .setAvailableSessionCommands(
+                        SessionCommands.Builder()
+                            .add(startVoiceRecognitionCommand)
+                            .build()
+                    )
                     .setAvailablePlayerCommands(MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS)
                     .build()
+            )
+
+            override fun onCustomCommand(
+                session: MediaSession,
+                controller: MediaSession.ControllerInfo,
+                customCommand: SessionCommand,
+                args: Bundle
+            ) = Futures.immediateFuture(
+                if (customCommand.customAction == COMMAND_START_VOICE_RECOGNITION) {
+                    voiceCommandController?.startListening()
+                    SessionResult(SessionResult.RESULT_SUCCESS)
+                } else {
+                    SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED)
+                }
             )
         }
         mediaSession = MediaSession.Builder(this, player).setCallback(callback).build()
@@ -61,6 +90,8 @@ class CompassService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        voiceCommandController?.release()
+        voiceCommandController = null
         mediaSession?.run {
             player.release()
             release()
@@ -87,6 +118,13 @@ class CompassServiceProvider(
                         get() = activeCompassConnection.compassEvents
                     override val course: StateFlow<Int>
                         get() = activeCompassConnection.course
+                    override val voiceCommandStatus: StateFlow<VoiceCommandStatus>
+                        get() = activeCompassConnection.voiceCommandStatus
+                    override fun requestVoiceCommand() {
+                        controller.sendCustomCommand(startVoiceRecognitionCommand, Bundle.EMPTY)
+                    }
+                    override fun updateVoiceCommandStatus(status: VoiceCommandStatus) =
+                        activeCompassConnection.updateVoiceCommandStatus(status)
                     override fun updateCourse(newCourse: Int) =
                         activeCompassConnection.updateCourse(newCourse)
 

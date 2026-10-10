@@ -39,7 +39,13 @@ class MainViewModel(compassProvider: CompassProvider) : ViewModel() {
     val headingError = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.compassEvents.filterIsInstance<CompassEvent.Heading>() }.map { it.headingError }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 1f)
     @OptIn(ExperimentalCoroutinesApi::class)
     val course = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.course }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 0)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val voiceCommandStatus = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>()
+        .flatMapLatest { it.voiceCommandStatus }
+        .stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = VoiceCommandStatus.Idle)
     fun updateCourse(newCourse: Int) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateCourse(newCourse) }
+    fun requestVoiceCommand() = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.requestVoiceCommand() }
+    fun updateVoiceCommandStatus(status: VoiceCommandStatus) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { it.updateVoiceCommandStatus(status) }
     @OptIn(ExperimentalCoroutinesApi::class)
     val audioPlaying = compassConnection.filterIsInstance<CompassConnection.ActiveCompassConnection>().flatMapLatest { it.audioPlaying }
     fun updateAudioPlayingState(newState: Boolean) = updateCompass<CompassConnection.ActiveCompassConnection>(compassConnection.value) { if (newState) it.startAudio(viewModelScope) else it.stopAudio() }

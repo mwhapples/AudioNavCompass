@@ -21,6 +21,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import app.audionav.compass.CompassConnection
 import app.audionav.compass.CompassEvent
+import app.audionav.compass.VoiceCommandStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import org.junit.Assert.*
@@ -33,6 +34,9 @@ class CompassPlayerTest {
         override val compassEvents: Flow<CompassEvent> = emptyFlow()
         private val _course = MutableStateFlow(0)
         override val course: StateFlow<Int> = _course.asStateFlow()
+        override val voiceCommandStatus: StateFlow<VoiceCommandStatus> = MutableStateFlow(VoiceCommandStatus.Idle)
+        override fun requestVoiceCommand() = Unit
+        override fun updateVoiceCommandStatus(status: VoiceCommandStatus) = Unit
         override fun updateCourse(newCourse: Int) {
             _course.value = newCourse
         }
