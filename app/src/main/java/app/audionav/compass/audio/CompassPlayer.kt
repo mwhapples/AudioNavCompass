@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.onEach
 @androidx.annotation.OptIn(UnstableApi::class)
 class CompassPlayer(
     private val compassConnection: CompassConnection.ActiveCompassConnection,
+    private val onSeekToNext: () -> Unit,
     looper: Looper = Looper.getMainLooper()
 ) : SimpleBasePlayer(looper) {
 
@@ -81,6 +82,8 @@ class CompassPlayer(
                 Player.Commands.Builder()
                     .addAll(
                         COMMAND_PLAY_PAUSE,
+                        COMMAND_SEEK_TO_NEXT,
+                        COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
                         COMMAND_PREPARE,
                         COMMAND_STOP,
                         COMMAND_GET_CURRENT_MEDIA_ITEM,
@@ -94,6 +97,19 @@ class CompassPlayer(
             .setPlayWhenReady(playWhenReady, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
             .setPlaybackState(state)
             .build()
+    }
+
+    override fun handleSeek(
+        mediaItemIndex: Int,
+        positionMs: Long,
+        seekCommand: Int
+    ): ListenableFuture<*> {
+        if (seekCommand == COMMAND_SEEK_TO_NEXT ||
+            seekCommand == COMMAND_SEEK_TO_NEXT_MEDIA_ITEM
+        ) {
+            onSeekToNext()
+        }
+        return Futures.immediateVoidFuture()
     }
 
     override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
